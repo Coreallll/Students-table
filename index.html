@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Students table</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+<div class="container">
+  <form id="form-new-student" class="form-new-student">
+    <label class="input-block">
+      <span class="title">Фамилия</span>
+      <input id="last-name" class="input" type="text">
+    </label>
+    <label class="input-block">
+      <span class="title">Дата рождения</span>
+      <input id="birth-date" class="input" type="text" placeholder="дд.мм.ггг" onfocus="(this.type='date')">
+    </label>
+    <label class="input-block">
+      <span class="title">Имя</span>
+      <input id="name" class="input" type="text">
+    </label>
+    <label class="input-block">
+      <span class="title">Год начала обучения</span>
+      <input id="start-education" class="input" type="number">
+    </label>
+    <label class="input-block">
+      <span class="title">Отчество</span>
+      <input id="patronymic" class="input" type="text">
+    </label>
+    <label class="input-block">
+      <span class="title">Факультет</span>
+      <input id="faculty" class="input" type="text">
+    </label>
+    <div id="errors" class="errors">
+      <span id="err-last-name" class="err err-disabled">- Заполните поле "Фамилия"</span>
+      <span id="err-name" class="err err-disabled">- Заполните поле "Имя"</span>
+      <span id="err-patronymic" class="err err-disabled">- Заполните поле "Отчество"</span>
+      <span id="err-birth-date" class="err err-disabled">- Укажите дату рождения от 1900г. до 2005г.</span>
+      <span id="err-start-education" class="err err-disabled">- Укажите год начала обучения от 2000-го</span>
+      <span id="err-faculty" class="err err-disabled">- Заполните поле "Факультет"</span>
+    </div>
+    <button type="submit" id="btn-confirm" class="btn-confirm">ДОБАВИТЬ СТУДЕНТА</button>
+  </form>
+
+  <form id="form-filter" action="/" class="form-filter">
+    <label>
+      <span>ФИО</span>
+      <input class="input filter-input" type="text" data-filter="fullName">
+    </label>
+    <label>
+      <span>Факультет</span>
+      <input class="input filter-input" type="text" data-filter="faculty">
+    </label>
+    <label>
+      <span>Год начала обучения</span>
+      <input class="input filter-input" type="text" data-filter="startEducation">
+    </label>
+    <label>
+      <span>Год окончания обучения</span>
+      <input class="input filter-input" type="text" data-filter="endEducation">
+    </label>
+  </form>
+
+  <table id="table" class="table">
+    <thead>
+      <tr id="row-header" class="table-header">
+        <td class="table-title table-title__active" data-sort="fullName">ФИО</td>
+        <td class="table-title" data-sort="faculty">Факультет</td>
+        <td class="table-title" data-sort="birthdate">Дата рождения и возраст</td>
+        <td class="table-title" data-sort="startEducation">Годы обучения и номер курса</td>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script src="main.js"></script>
+
+</body>
+</html>

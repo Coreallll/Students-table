@@ -6,7 +6,6 @@ body {
 }
 
 button {
-  padding: 15px;
   font-family: inherit;
   font-weight: 600;
   width: 100%;
@@ -21,13 +20,17 @@ button:focus {
   outline-color: rgba(12, 118, 224, 0.8);
 }
 
+h1 {
+  text-align: center;
+}
+
 .container {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin: 0 auto;
   padding: 50px;
-  max-width: 70%;
+  max-width: 90%;
   background-color: #ffffff;
   border-radius: 30px;
 }
@@ -35,14 +38,14 @@ button:focus {
 .form-new-student {
   position: relative;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   width: 100%;
 }
 
 .input-block {
   display: flex;
   flex-direction: column;
-  width: 49%;
+  width: 100%;
 }
 
 .input-block:nth-child(2n + 1) {
@@ -54,13 +57,16 @@ button:focus {
 }
 
 .input {
-  margin-bottom: 15px;
   padding: 5px;
   border-radius: 4px;
   font-size: 14px;
   line-height: 16px;
   max-height: 28px;
   border: 1px solid rgba(51, 51, 51, 0.6);
+}
+
+.input-form {
+  margin-bottom: 15px;
 }
 
 .input:focus {
@@ -80,6 +86,7 @@ input[type="date" i]  {
 .btn-confirm {
   align-self: center;
   margin-bottom: 20px;
+  padding: 15px;
   max-width: 250px;
   border-radius: 4px;
   background-color: rgb(11, 82, 232);
@@ -96,7 +103,6 @@ input[type="date" i]  {
 
 .btn-confirm:active {
   background-color: rgba(11, 82, 232, 0.91);
-  /*transition: all 0.15s ease-in-out;*/
 }
 
 .btn-confirm:focus {
@@ -104,12 +110,36 @@ input[type="date" i]  {
 }
 
 .form-filter {
+  margin-bottom: 15px;
   width: 100%;
   display: flex;
   justify-content: space-between;
 }
 
+.btn-clear {
+  padding: 0;
+  max-width: 90px;
+  border-radius: 4px;
+  background-color: rgb(11, 82, 232);
+  color: #ffffff;
+}
+
+.btn-clear:hover {
+  background-color: rgb(9, 62, 171);
+  border-color: #011f7c;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-clear:active {
+  background-color: rgba(11, 82, 232, 0.91);
+}
+
+.btn-clear:focus {
+  outline-color: rgba(12, 118, 224, 0.8);
+}
+
 .table {
+  margin-bottom: 15px;
   width: 100%;
   border-collapse: collapse;
   border: 1px solid rgba(51, 51, 51, 0.6);
@@ -140,15 +170,23 @@ td {
   background-color: rgb(124, 169, 232);
 }
 
+.student {
+  cursor: pointer;
+}
+
+.student__active {
+  background-color: #9ac2d1;
+}
 
 .errors {
   position: absolute;
-  bottom: 80px;
-  right: 103px;
+  right: 40%;
   display: none;
   flex-direction: column;
-  padding: 10px;
+  justify-content: space-around;
+  padding: 15px;
   width: 100%;
+  height: 65%;
   max-width: 275px;
   font-size: 14px;
   border: 1px solid rgba(51, 51, 51, 0.6);
@@ -169,3 +207,33 @@ td {
   display: none;
 }
 
+.btn-delete {
+  display: none;
+  align-self: center;
+  margin-bottom: 20px;
+  padding: 10px;
+  max-width: 250px;
+  border-radius: 4px;
+  background-color: rgb(229, 40, 69);
+  border-color: rgba(51, 51, 51, 0.6);
+  color: #ffffff;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-delete__active {
+  display: block;
+}
+
+.btn-delete:hover {
+  background-color: rgb(171, 9, 33);
+  border-color: #011f7c;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-delete:active {
+  background-color: rgba(232, 11, 52, 0.91);
+}
+
+.btn-confirm:focus {
+  outline-color: rgba(224, 12, 37, 0.8);
+}

@@ -1,98 +1,136 @@
-let students = [
-  {lastName: 'Пупкин', name: 'Василий', patronymic: 'Аркадьевич', birthDate: new Date(2003,1,12), startEducation: 2021, faculty:'Информатический'},
-  {lastName: 'Краснов', name: 'Андрей', patronymic: 'Геннадьевич', birthDate: new Date(1999,5,6), startEducation: 2017, faculty:'Юридический'},
-  {lastName: 'Петров', name: 'Евгений', patronymic: 'Александрович', birthDate: new Date(2002,3,9), startEducation: 2020, faculty:'Экономический'},
-  {lastName: 'Иванов', name: 'Владислав', patronymic: 'Павлович', birthDate: new Date(2001,7,17), startEducation: 2019, faculty:'Химический'},
-  {lastName: 'Сидоров', name: 'Сергей', patronymic: 'Антонович', birthDate: new Date(1997,11,1), startEducation: 2015, faculty:'Биологический'}
-];
+let students = [];
+let sortFlag
+let dirFlag = true
+let stId
+let studentItem
+const tbody = document.querySelector('tbody'),
+      filterFIO = document.getElementById('filterFIO'),
+      filterFaculty = document.getElementById('filterFaculty'),
+      filterStartEducation = document.getElementById('filterStartEducation'),
+      filterEndEducation = document.getElementById('filterEndEducation'),
+      formNewStudent = document.getElementById('formNewStudent'),
+      headFIO = document.getElementById('headFIO'),
+      headFaculty = document.getElementById('headFaculty'),
+      headBirthdate = document.getElementById('headBirthdate'),
+      headStartEducation = document.getElementById('headStartEducation'),
+      clearButton = document.getElementById('clearButton'),
+      deleteBtn = document.getElementById('deleteButton');
 
-let filteredStudents = [];
 
-Object.assign(filteredStudents, students);
+async function loadStudents() {
+  const response = await fetch('http://localhost:3000/api/students')
+  const dataStudents = await response.json();
 
-const createTable = students => {
+  return (students = dataStudents)
+}
 
-  const tbody = document.querySelector('tbody');
+let serverArr = await loadStudents(students);
+
+
+function createStudent(student) {
+  const row = document.createElement('tr'),
+        cellFullName = document.createElement('td'),
+        cellFaculty = document.createElement('td'),
+        cellBirthDate = document.createElement('td'),
+        cellYearOfEducation = document.createElement('td');
+
+  const currentYear = new Date().getFullYear();
+  const course = currentYear - student.studyStart;
+  student.fio = student.surname + ' ' + student.name + ' ' + student.lastname;
+  student.endEducation = parseInt(student.studyStart) + 4;
+
+  const wordEnding = (number, txt) => {
+    let cases = [2, 0, 1, 1, 1, 2];
+    return txt[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]];
+  }
+
+  const years = wordEnding(studentAge(student.birthday), ['год', 'года', 'лет']);
+
+  cellFullName.textContent = student.fio;
+  cellFaculty.textContent = student.faculty;
+  cellBirthDate.textContent = getBirthDate(new Date(student.birthday)) + ' ' + '(' + studentAge(new Date(student.birthday)) + ' ' + years + ')';
+
+  if (course < 4) {
+    cellYearOfEducation.textContent = student.studyStart + ' - ' + currentYear + ' (' + course + ' курс' + ')';
+  } else {
+    cellYearOfEducation.textContent = student.studyStart + ' - ' + student.endEducation + ' (' + 'окончил(а)' +')'
+  }
+
+  row.append(cellFullName,  cellFaculty,  cellBirthDate,  cellYearOfEducation);
+  tbody.append(row);
+
+  row.classList.add('student');
+
+  row.addEventListener('click', async () => {
+    stId = student.id;
+    studentItem = row;
+  })
+
+
+  return row
+}
+
+function addStudents() {
+  let serverArrCopy = [...serverArr];
 
   tbody.innerHTML = '';
 
+  //Сортировка
+  serverArrCopy.sort( (a, b) => {
+    let sort = a[sortFlag] < b[sortFlag]
 
-  //заполнение таблицы
-  students.forEach((item) => {
-    let row = document.createElement('tr'),
-      cellFullName = document.createElement('td'),
-      cellFaculty = document.createElement('td'),
-      cellBirthDate = document.createElement('td'),
-      cellYearOfEducation = document.createElement('td');
+    if(dirFlag === false) sort = a[sortFlag] > b[sortFlag]
+    if(sort) return -1
+  })
 
-    const currentYear = new Date().getFullYear();
-    const course = currentYear - item.startEducation;
-    const educationEndYear = parseInt(item.startEducation) + 4;
+  //Фильтрация студентов
+  if (filterFIO.value.trim() !== "") {
+    serverArrCopy = serverArrCopy.filter(function (student) {
+      if (student.fio.includes(registerFIO())) return true
+    });
+  }
 
+  if (filterFaculty.value.trim() !== "") {
+    serverArrCopy = serverArrCopy.filter(function (student) {
+      if (student.faculty.includes(registerFaculty())) return true
+    })
+  }
+  if (filterStartEducation.value.trim() !== "") {
+    serverArrCopy = serverArrCopy.filter(function (student) {
+      if (String(student.studyStart).includes(filterStartEducation.value.trim())) return true
+    })
+  }
+  if (filterEndEducation.value.trim() !== "") {
+    serverArrCopy = serverArrCopy.filter(function (student) {
+      if (String(student.endEducation).includes(filterEndEducation.value.trim())) return true
+    })
+  }
 
-    const wordEnding = (number, txt) => {
-      let cases = [2, 0, 1, 1, 1, 2];
-      return txt[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]];
-    }
+  //Заполняем таблицу
 
-    const years = wordEnding(studentAge(item), ['год', 'года', 'лет']);
+  //Запрос на список студентов
 
-    function getBirthDate(item) {
-      let yyyy = item.birthDate.getFullYear();
-      let mm = item.birthDate.getMonth();
-      let dd = item.birthDate.getDate();
-
-      if (dd < 10) dd = '0' + dd;
-      if (mm < 10) mm = '0' + mm;
-
-      return  dd + '.' + mm + '.' + yyyy;
-    }
-
-    function studentAge(item) {
-      let currTime = new Date();
-      let age = currTime.getFullYear() - item.birthDate.getFullYear();
-      let month = currTime.getMonth() - item.birthDate.getMonth();
-      if (month < 0 || (month) === 0 && currTime.getDate() < item.birthDate.getDate()) {
-        age--;
-      }
-      return  age;
-    }
-
-    cellFullName.textContent = item.lastName + ' ' + item.name + ' ' + item.patronymic;
-    cellFaculty.textContent = item.faculty;
-    cellBirthDate.textContent = getBirthDate(item) + ' (' + studentAge(item) + ' ' + years + ')';
-
-    if (course < 4) {
-      cellYearOfEducation.textContent = item.startEducation + ' - ' + currentYear + ' (' + course + ' курс' + ')';
-    } else {
-      cellYearOfEducation.textContent = item.startEducation + ' - ' + educationEndYear + ' (' + 'окончил' +')'
-    }
-
-    row.append(cellFullName,  cellFaculty,  cellBirthDate,  cellYearOfEducation);
-    tbody.append(row);
+  serverArrCopy.forEach(student => {
+    const newStudent = createStudent(student)
+    tbody.append(newStudent)
   })
 }
-//вызываем функцию для заполнения таблицы
-createTable(students);
 
-//добавление нового студента через отправку формы
-const formNewStudent = document.getElementById('form-new-student');
-
-formNewStudent.addEventListener('submit', (event) => {
-  const newName = document.getElementById('name');
-  const newLastName = document.getElementById('last-name');
-  const newPatronymic = document.getElementById('patronymic');
-  const newBirthDate = document.getElementById('birth-date');
-  const newStartEducation = document.getElementById('start-education');
-  const newFaculty = document.getElementById('faculty');
+//Форма для создания нового студента
+formNewStudent.addEventListener('submit', async (event) => {
 
   event.preventDefault();
 
-  const errorsField = document.getElementById('errors');
-  const inputs = formNewStudent.querySelectorAll('input');
-  const emptyInputs = Array.from(inputs).filter(input => input.value === '');
+  const newName = document.getElementById('name'),
+        newSurname = document.getElementById('surname'),
+        newLastname = document.getElementById('lastname'),
+        newBirthDate = document.getElementById('birthdate'),
+        newStartEducation = document.getElementById('startEducation'),
+        newFaculty = document.getElementById('faculty'),
+        errorsField = document.getElementById('errors'),
+        inputs = formNewStudent.querySelectorAll('input');
 
-  inputs.forEach(function (input) {
+  inputs.forEach((input) => {
     if (input.value.trim() === '') {
       input.classList.add('input__error');
     } else  {
@@ -100,39 +138,46 @@ formNewStudent.addEventListener('submit', (event) => {
     }
   })
 
-  //Если фамилия не указано, выдаст ошибку и выведет её в поле
-  const errorLastName = document.getElementById('err-last-name');
-  if (newLastName.value.length === 0) {
-    errorsField.classList.add('errors__active');
-    errorLastName.classList.remove('err-disabled');
-  } else {
-    errorLastName.classList.add('err-disabled');
-    errorsField.classList.remove('errors__active');
-  }
+  const errorSurname = document.getElementById('errSurname');
+  const errorName = document.getElementById('errName');
+  const errorLastname = document.getElementById('errLastname');
+  const errorFaculty = document.getElementById('errFaculty');
 
-  //Если имя не указано, выдаст ошибку и выведет её в поле
-  const errorName = document.getElementById('err-name');
-  if (newName.value.length === 0) {
-    errorsField.classList.add('errors__active');
+  const newNameEmpty = newName.value.length === 0;
+  const newSurnameEmpty = newSurname.value.length === 0;
+  const newLastnameEmpty = newLastname.value.length === 0;
+  const newFacultyEmpty = newFaculty.value.length === 0;
+
+  if (newNameEmpty) {
     errorName.classList.remove('err-disabled');
-  } else {
+  }
+  else {
     errorName.classList.add('err-disabled');
-    errorsField.classList.remove('errors__active');
   }
 
-  //Если отчество не указано, выдаст ошибку и выведет её в поле
-  const errorPatronymic = document.getElementById('err-patronymic');
-  if (newPatronymic.value.length === 0) {
-    errorsField.classList.add('errors__active');
-    errorPatronymic.classList.remove('err-disabled');
-  } else {
-    errorPatronymic.classList.add('err-disabled');
-    errorsField.classList.remove('errors__active');
+  if (newSurnameEmpty) {
+    errorSurname.classList.remove('err-disabled');
+  }
+  else {
+    errorSurname.classList.add('err-disabled');
+  }
 
+  if (newLastnameEmpty) {
+    errorLastname.classList.remove('err-disabled');
+  }
+  else {
+    errorLastname.classList.add('err-disabled');
+  }
+
+  if (newFacultyEmpty) {
+    errorFaculty.classList.remove('err-disabled');
+  }
+  else {
+    errorFaculty.classList.add('err-disabled');
   }
 
   //Если дата рождения не указана или указана не в рамках с 1900 по 2005, выдаст ошибку и выведет её в поле
-  const errorBirthDate = document.getElementById('err-birth-date');
+  const errorBirthDate = document.getElementById('errBirthdate');
   if (newBirthDate.valueAsDate === null || newBirthDate.valueAsDate.getFullYear() < 1900 || newBirthDate.valueAsDate.getFullYear() > 2005) {
     errorsField.classList.add('errors__active');
     errorBirthDate.classList.remove('err-disabled');
@@ -142,7 +187,7 @@ formNewStudent.addEventListener('submit', (event) => {
   }
 
   //Если дата начала обучения не указана или указана меньше 2000 года, выдаст ошибку и выведет её в поле
-  const errorStartEducation = document.getElementById('err-start-education');
+  const errorStartEducation = document.getElementById('errStartEducation');
   if (newStartEducation.value === '' || newStartEducation < 2000) {
     errorsField.classList.add('errors__active');
     errorStartEducation.classList.remove('err-disabled');
@@ -151,115 +196,182 @@ formNewStudent.addEventListener('submit', (event) => {
     errorsField.classList.remove('errors__active');
   }
 
-  //Если факультет не указан, выдаст ошибку и выведете её в поле
-  const errorFaculty = document.getElementById('err-faculty');
-  if (newFaculty.value.length === 0) {
+  if (newNameEmpty || newSurnameEmpty || newLastnameEmpty || newFacultyEmpty) {
     errorsField.classList.add('errors__active');
-    errorFaculty.classList.remove('err-disabled');
-  } else {
-    errorFaculty.classList.add('err-disabled');
-    errorsField.classList.remove('errors__active');
-  }
-  if (emptyInputs.length !== 0) {
-    return false;
+    return
   }
 
-  let createNewStudent = {
-    name: newName.value,
-    lastName: newLastName.value,
-    patronymic: newPatronymic.value,
-    birthDate: newBirthDate.valueAsDate,
-    startEducation: newStartEducation.value,
-    faculty: newFaculty.value
-  }
-
-  students.push(createNewStudent);
-  Object.assign(filteredStudents, students);
-
-  formNewStudent.reset();
-
-  createTable(students);
-})
-
-//Сортировка таблицы
-const tableHeader = document.getElementById('row-header');
-
-tableHeader.addEventListener('click', (e) => {
-  if (e.target.classList.contains('table-title')) {
-    const orderedStudents = [];
-    Object.assign(orderedStudents, filteredStudents);
-    switch (e.target.getAttribute('data-sort')) {
-      case 'fullName':
-        orderedStudents.sort((prev, next) => {
-          if ( `${prev.lastName} ${prev.name} ${prev.patronymic}` < `${next.lastName} ${next.name} ${next.patronymic}` ) return -1;
-          if ( `${prev.lastName} ${prev.name} ${prev.patronymic}` > `${next.lastName} ${next.name} ${next.patronymic}` ) return 1;
-        })
-        createTable(orderedStudents);
-        break;
-      case 'faculty':
-        orderedStudents.sort((prev, next) => {
-          if ( prev.faculty < next.faculty ) return -1;
-          if ( prev.faculty < next.faculty ) return 1;
-        });
-        createTable(orderedStudents);
-        break;
-      case 'birthdate':
-        orderedStudents.sort((prev, next) => prev.birthDate - next.birthDate);
-        createTable(orderedStudents);
-        break;
-      case 'startEducation':
-        orderedStudents.sort((prev, next) => prev.startEducation - next.startEducation);
-        createTable(orderedStudents);
-        break;
-      default:
-        break;
+  const response = await fetch('http://localhost:3000/api/students', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: newName.value.trim().substring(0, 1).toLocaleUpperCase() + newName.value.trim().substring(1).toLowerCase(),
+      surname: newSurname.value.trim().substring(0, 1).toLocaleUpperCase() + newSurname.value.trim().substring(1).toLowerCase(),
+      lastname: newLastname.value.trim().substring(0, 1).toLocaleUpperCase() + newLastname.value.trim().substring(1).toLowerCase(),
+      birthday: newBirthDate.value,
+      studyStart: parseInt(newStartEducation.value.trim()),
+      faculty: newFaculty.value.trim().substring(0, 1).toLocaleUpperCase() + newFaculty.value.trim().substring(1).toLowerCase()
+    }),
+    headers: {
+      'Content-Type': 'application/json'
     }
-  }
-
-  const tableTitle = document.querySelectorAll('.table-title');
-  tableTitle.forEach((el) => {
-    el.classList.remove('table-title__active');
   })
-  e.target.classList.add('table-title__active');
+
+  const dataStudents = await response.json();
+
+  serverArr.push(dataStudents);
+
+  newName.value = '';
+  newSurname.value = '';
+  newLastname.value = '';
+  newBirthDate.value = '';
+  newStartEducation.value = '';
+  newFaculty.value = '';
+
+  addStudents();
+  studentSelection();
+
 })
 
-//Фильтрация таблицы
-const formFilter = document.getElementById('form-filter');
+addStudents();
 
-formFilter.querySelectorAll('.filter-input').forEach((inpt) => {
-  inpt.addEventListener('input', (e) => {
-    Object.assign(filteredStudents, students);
+//Сортировка студентов
+headFIO.addEventListener('click', () => {
+  sortFlag = 'fio';
+  dirFlag = !dirFlag;
+  addStudents(serverArr);
+  studentSelection();
+})
 
-    formFilter.querySelectorAll('.filter-input').forEach((inpt) => {
-      if(inpt.value.length) {
-        switch (inpt.getAttribute('data-filter')) {
-          case 'fullName':
-            filteredStudents = filteredStudents.filter(stud => {
-              if (`${stud.lastName} ${stud.name} ${stud.patronymic}`.toLowerCase().includes(inpt.value.toLowerCase())) return inpt;
-            })
-            break;
-          case 'faculty':
-            filteredStudents = filteredStudents.filter((stud) => {
-              if (`${stud.faculty}`.toLowerCase().includes(inpt.value.toLowerCase())) return inpt;
-            })
-            break;
-          case 'startEducation':
-            filteredStudents = filteredStudents.filter((stud) => {
-              if (`${stud.startEducation}` === inpt.value) return inpt;
-            })
-            break;
-          case 'endEducation':
-            filteredStudents = filteredStudents.filter((stud) => {
-              if (`${parseInt(stud.startEducation) + 4}` === inpt.value) return inpt;
-            })
-            break;
-        }
+headBirthdate.addEventListener('click', function () {
+  sortFlag = 'birthday'
+  dirFlag = !dirFlag
+  addStudents(serverArr)
+  studentSelection()
+})
+
+headStartEducation.addEventListener('click', function () {
+  sortFlag = 'studyStart'
+  dirFlag = !dirFlag
+  addStudents(serverArr)
+  studentSelection()
+})
+
+headFaculty.addEventListener('click', function () {
+  sortFlag = 'faculty'
+  dirFlag = !dirFlag
+  addStudents(serverArr)
+  studentSelection()
+})
+
+
+function getBirthDate(date) {
+  let yyyy =  new Date(date).getFullYear();
+  let mm =  new Date(date).getMonth() + 1;
+  let dd =  new Date(date).getDate();
+  if (dd < 10) dd = '0' + dd;
+  if (mm < 10) mm = '0' + mm;
+  let result = dd + '.' + mm + '.' + yyyy;
+
+  return result;
+}
+
+function studentAge(date) {
+  const today = new Date();
+  let age = today.getFullYear() - new Date(date).getFullYear();
+  let m = today.getMonth() - new Date(date).getMonth();
+  if (m < 0 || (m === 0 && today.getDate() <  new Date(date).getDate())) {
+      age--;
+  }
+  return age;
+}
+
+//Функции для фильтрации студентов
+function registerFIO() {
+  let filteredFIO = filterFIO.value.substring(0, 1).toUpperCase() + filterFIO.value.substring(1).toLowerCase();
+  return filteredFIO
+}
+
+function registerFaculty() {
+  let filteredFaculty = filterFaculty.value.substring(0, 1).toUpperCase() + filterFaculty.value.substring(1).toLowerCase();
+  return filteredFaculty
+}
+
+filterFIO.addEventListener('input', function () {
+  addStudents(students)
+  studentSelection()
+})
+
+filterFaculty.addEventListener('input', function () {
+  addStudents(students)
+  studentSelection()
+})
+
+filterStartEducation.addEventListener('input', function () {
+  addStudents(students)
+  studentSelection()
+})
+
+filterEndEducation.addEventListener('input', function () {
+  addStudents(students)
+  studentSelection()
+})
+
+clearButton.addEventListener('click', (e) => {
+  e.preventDefault();
+  filterFIO.value = ""
+  filterStartEducation.value = ""
+  filterEndEducation.value = ""
+  filterFaculty.value = ""
+  addStudents()
+})
+
+//Обработка выбора студента
+function studentSelection() {
+  const studentsList = document.querySelectorAll('.student');
+
+  studentsList.forEach((studentItem) => {
+    studentItem.addEventListener('click', () => {
+      if (studentItem.classList.contains('student__active')) {
+        deleteBtn.classList.remove('btn-delete__active')
+        studentItem.classList.remove('student__active')
+
+      } else {
+        closeStudentSelection()
+        studentItem.classList.add('student__active')
+        deleteBtn.classList.add('btn-delete__active')
       }
     })
-    createTable(filteredStudents);
   })
+
+  function closeStudentSelection() {
+    studentsList.forEach((studentItem) => {
+      studentItem.classList.remove('student__active')
+    })
+  }
+
+}
+studentSelection()
+
+//Удаление студента
+deleteBtn.addEventListener('click', function () {
+  const check = confirm("Вы хотите удалить запись?");
+  if (check === true) {
+    async function deleteItem(studentId) {
+      const response = await fetch(`http://localhost:3000/api/students/${studentId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      const data = await response.json();
+
+    }
+
+    deleteItem(stId);
+    studentItem.remove();
+  } else {
+    return;
+  }
+  deleteBtn.classList.remove('btn-delete__active')
+  window.location.reload();
 })
-
-
-
 
